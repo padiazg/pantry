@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "hexago": {
+      "type": "stdio",
+      "command": "hexago",
+      "args": [
+        "mcp"
+      ],
+      "env": {}
+    }
+  }
+}

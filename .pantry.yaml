@@ -1,0 +1,14 @@
+server:
+  port: 8080
+  host: 0.0.0.0
+  readtimeout: 15s
+  writetimeout: 15s
+  idletimeout: 60s
+  shutdowntimeout: 30s
+
+database:
+  url: postgres://pantry_user:secr3t@postgres.kube.patodiaz.dev:5432/pantry?sslmode=disable
+
+loglevel: info
+logformat: json
+

@@ -1,0 +1,20 @@
+# .hexago.yaml - HexaGo project configuration
+# Created by `hexago init`. Edit with care.
+
+project:
+    name: pantry
+    module: github.com/padiazg/pantry
+    type: http-server
+    framework: chi
+    go_version: "1.21"
+structure:
+    adapter_style: primary-secondary
+    core_logic: services
+    explicit_ports: false
+features:
+    with_docker: true
+    with_observability: true
+    with_migrations: true
+    with_workers: false
+    with_metrics: false
+    with_example: false
