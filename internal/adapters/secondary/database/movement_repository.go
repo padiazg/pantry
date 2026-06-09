@@ -10,13 +10,22 @@ import (
 	"github.com/padiazg/pantry/internal/core/domain"
 )
 
+// DBTX is the interface that *sql.DB satisfies.
+// Using an interface allows injection of a mock in tests.
+type DBTX interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
+}
+
 // MovementRepository implements domain.MovementRepository using PostgreSQL.
 type MovementRepository struct {
-	db *sql.DB
+	db DBTX
 }
 
 // NewMovementRepository creates a new MovementRepository.
-func NewMovementRepository(db *sql.DB) *MovementRepository {
+func NewMovementRepository(db DBTX) *MovementRepository {
 	return &MovementRepository{db: db}
 }
 
