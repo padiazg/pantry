@@ -9,6 +9,6 @@ server:
 database:
   url: postgres://pantry_user:secr3t@postgres.kube.patodiaz.dev:5432/pantry?sslmode=disable
 
-loglevel: info
+loglevel: debug
 logformat: json
 
