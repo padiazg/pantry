@@ -85,7 +85,7 @@ func TestMovementRepository_FindByID(t *testing.T) {
 		{
 			name: "success",
 			before: func(t *testing.T, sm sqlmock.Sqlmock, id string) {
-				sm.ExpectQuery(`SELECT`).
+				sm.ExpectQuery(`.*FROM movements.*`).
 					WillReturnRows(sqlmock.NewRows([]string{
 						"id", "product_ean13", "type", "quantity",
 						"reason", "notes", "created_by", "created_at",
@@ -104,7 +104,7 @@ func TestMovementRepository_FindByID(t *testing.T) {
 		{
 			name: "not found",
 			before: func(t *testing.T, sm sqlmock.Sqlmock, id string) {
-				sm.ExpectQuery(`SELECT`).
+				sm.ExpectQuery(`.*FROM movements.*`).
 					WillReturnError(sql.ErrNoRows)
 			},
 			wantErr: true,
@@ -112,7 +112,7 @@ func TestMovementRepository_FindByID(t *testing.T) {
 		{
 			name: "query error",
 			before: func(t *testing.T, sm sqlmock.Sqlmock, id string) {
-				sm.ExpectQuery(`SELECT`).
+				sm.ExpectQuery(`.*FROM movements.*`).
 					WillReturnError(assert.AnError)
 			},
 			wantErr: true,
@@ -169,7 +169,7 @@ func TestMovementRepository_List(t *testing.T) {
 			filter:  domain.MovementFilter{},
 			wantLen: 2,
 			before: func(t *testing.T, sm sqlmock.Sqlmock) {
-				sm.ExpectQuery(`SELECT`).
+				sm.ExpectQuery(`.*FROM movements.*`).
 					WillReturnRows(sqlmock.NewRows([]string{
 						"id", "product_ean13", "type", "quantity",
 						"reason", "notes", "created_by", "created_at",
@@ -201,7 +201,7 @@ func TestMovementRepository_List(t *testing.T) {
 			},
 			wantLen: 1,
 			before: func(t *testing.T, sm sqlmock.Sqlmock) {
-				sm.ExpectQuery(`SELECT`).
+				sm.ExpectQuery(`.*FROM movements.*`).
 					WillReturnRows(sqlmock.NewRows([]string{
 						"id", "product_ean13", "type", "quantity",
 						"reason", "notes", "created_by", "created_at",
@@ -224,7 +224,7 @@ func TestMovementRepository_List(t *testing.T) {
 			},
 			wantLen: 1,
 			before: func(t *testing.T, sm sqlmock.Sqlmock) {
-				sm.ExpectQuery(`SELECT`).
+				sm.ExpectQuery(`.*FROM movements.*`).
 					WillReturnRows(sqlmock.NewRows([]string{
 						"id", "product_ean13", "type", "quantity",
 						"reason", "notes", "created_by", "created_at",
@@ -248,7 +248,7 @@ func TestMovementRepository_List(t *testing.T) {
 			},
 			wantLen: 1,
 			before: func(t *testing.T, sm sqlmock.Sqlmock) {
-				sm.ExpectQuery(`SELECT`).
+				sm.ExpectQuery(`.*FROM movements.*`).
 					WillReturnRows(sqlmock.NewRows([]string{
 						"id", "product_ean13", "type", "quantity",
 						"reason", "notes", "created_by", "created_at",
@@ -272,7 +272,7 @@ func TestMovementRepository_List(t *testing.T) {
 			},
 			wantLen: 1,
 			before: func(t *testing.T, sm sqlmock.Sqlmock) {
-				sm.ExpectQuery(`SELECT`).
+				sm.ExpectQuery(`.*FROM movements.*`).
 					WillReturnRows(sqlmock.NewRows([]string{
 						"id", "product_ean13", "type", "quantity",
 						"reason", "notes", "created_by", "created_at",
@@ -294,7 +294,7 @@ func TestMovementRepository_List(t *testing.T) {
 				ProductEan13: "1234567890128",
 			},
 			before: func(t *testing.T, sm sqlmock.Sqlmock) {
-				sm.ExpectQuery(`SELECT`).
+				sm.ExpectQuery(`.*FROM movements.*`).
 					WillReturnError(assert.AnError)
 			},
 			wantErr: true,
@@ -305,7 +305,7 @@ func TestMovementRepository_List(t *testing.T) {
 			filter:  domain.MovementFilter{},
 			wantLen: 0,
 			before: func(t *testing.T, sm sqlmock.Sqlmock) {
-				sm.ExpectQuery(`SELECT`).
+				sm.ExpectQuery(`.*FROM movements.*`).
 					WillReturnRows(sqlmock.NewRows([]string{
 						"id", "product_ean13", "type", "quantity",
 						"reason", "notes", "created_by", "created_at",
@@ -395,11 +395,11 @@ func TestMovementRepository_CreateWithStockUpdate(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
+		ttt := tt
+		t.Run(ttt.name, func(t *testing.T) {
 			t.Parallel()
 			m, _, sm := newMockDB(t)
-			tt.before(t, sm)
+			ttt.before(t, sm)
 
 			s := database.NewMovementRepository(m)
 
@@ -414,10 +414,10 @@ func TestMovementRepository_CreateWithStockUpdate(t *testing.T) {
 				CreatedAt:    time.Now(),
 			}
 
-			err := s.CreateWithStockUpdate(context.Background(), movement, tt.newStock)
-			if tt.wantErr {
+			err := s.CreateWithStockUpdate(context.Background(), movement, ttt.newStock)
+			if ttt.wantErr {
 				require.Error(t, err)
-				assert.Contains(t, err.Error(), tt.wantSub)
+				assert.Contains(t, err.Error(), ttt.wantSub)
 				return
 			}
 			assert.NoError(t, err)

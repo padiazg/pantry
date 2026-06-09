@@ -67,30 +67,9 @@ func (r *MovementRepository) FindByID(ctx context.Context, id string) (*domain.M
 func (r *MovementRepository) List(ctx context.Context, filter domain.MovementFilter) ([]*domain.Movement, error) {
 	q := `SELECT id, product_ean13, type, quantity, reason, notes, created_by, created_at
 		FROM movements WHERE 1=1`
-	args := []any{}
-	idx := 1
 
-	if filter.ProductEan13 != "" {
-		q += fmt.Sprintf(" AND product_ean13 = $%d", idx)
-		args = append(args, filter.ProductEan13)
-		idx++
-	}
-	if filter.Type != "" {
-		q += fmt.Sprintf(" AND type = $%d", idx)
-		args = append(args, filter.Type)
-		idx++
-	}
-	if !filter.From.IsZero() {
-		q += fmt.Sprintf(" AND created_at >= $%d", idx)
-		args = append(args, filter.From)
-		idx++
-	}
-	if !filter.To.IsZero() {
-		q += fmt.Sprintf(" AND created_at <= $%d", idx)
-		args = append(args, filter.To)
-		idx++
-	}
-	q += " ORDER BY created_at DESC"
+	q0, args := filter.Args()
+	q += q0 + " ORDER BY created_at DESC"
 
 	rows, err := r.db.QueryContext(ctx, q, args...)
 	if err != nil {

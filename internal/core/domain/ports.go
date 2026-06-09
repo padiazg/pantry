@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -11,17 +12,48 @@ var ErrNotFound = errors.New("not found")
 
 // ProductFilter holds optional criteria for listing products.
 type ProductFilter struct {
-	CategoryID string
 	Active     *bool
+	CategoryID string
 	LowStock   bool
 }
 
 // MovementFilter holds optional criteria for listing movements.
 type MovementFilter struct {
-	ProductEan13 string
-	Type         string
 	From         time.Time
 	To           time.Time
+	ProductEan13 string
+	Type         string
+}
+
+func (filter *MovementFilter) Args() (string, []any) {
+	var (
+		q    string
+		args []any
+	)
+
+	idx := 1
+
+	if filter.ProductEan13 != "" {
+		q += fmt.Sprintf(" AND product_ean13 = $%d", idx)
+		args = append(args, filter.ProductEan13)
+		idx++
+	}
+	if filter.Type != "" {
+		q += fmt.Sprintf(" AND type = $%d", idx)
+		args = append(args, filter.Type)
+		idx++
+	}
+	if !filter.From.IsZero() {
+		q += fmt.Sprintf(" AND created_at >= $%d", idx)
+		args = append(args, filter.From)
+		idx++
+	}
+	if !filter.To.IsZero() {
+		q += fmt.Sprintf(" AND created_at <= $%d", idx)
+		args = append(args, filter.To)
+	}
+
+	return q, args
 }
 
 // ProductRepository defines the secondary port for product persistence.
