@@ -50,4 +50,5 @@ jobs:
           path: |
             pr-comment.md
             pr-number.txt
+            mutation-report.json
           if-no-files-found: ignore
