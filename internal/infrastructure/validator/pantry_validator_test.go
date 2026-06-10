@@ -86,12 +86,59 @@ func TestPantryValidator_Email(t *testing.T) {
 }
 
 func TestPantryValidator_MinLength(t *testing.T) {
-	v := validator.NewPantryValidator()
+	tests := []struct {
+		name    string
+		field   string
+		value   string
+		min     int
+		wantErr bool
+	}{
+		{
+			name:    "value meets minimum length",
+			field:   "name",
+			value:   "John",
+			min:     4,
+			wantErr: false,
+		},
+		{
+			name:    "value exceeds minimum length",
+			field:   "description",
+			value:   "A long description",
+			min:     5,
+			wantErr: false,
+		},
+		{
+			name:    "value below minimum length",
+			field:   "name",
+			value:   "Jo",
+			min:     4,
+			wantErr: true,
+		},
+		{
+			name:    "empty value below minimum",
+			field:   "code",
+			value:   "",
+			min:     3,
+			wantErr: true,
+		},
+		{
+			name:    "minimum length exactly met",
+			field:   "sku",
+			value:   "abc",
+			min:     3,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := validator.NewPantryValidator()
+			v.MinLength(tt.field, tt.value, tt.min)
 
-	v.MinLength("password", "short", 8)
-	assert.True(t, v.HasErrors())
-
-	v = validator.NewPantryValidator()
-	v.MinLength("password", "longenough", 8)
-	assert.False(t, v.HasErrors())
+			if tt.wantErr {
+				assert.True(t, v.HasErrors())
+			} else {
+				assert.False(t, v.HasErrors())
+			}
+		})
+	}
 }

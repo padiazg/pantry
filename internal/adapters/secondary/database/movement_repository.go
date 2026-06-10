@@ -10,13 +10,22 @@ import (
 	"github.com/padiazg/pantry/internal/core/domain"
 )
 
+// DBTX is the interface that *sql.DB satisfies.
+// Using an interface allows injection of a mock in tests.
+type DBTX interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
+}
+
 // MovementRepository implements domain.MovementRepository using PostgreSQL.
 type MovementRepository struct {
-	db *sql.DB
+	db DBTX
 }
 
 // NewMovementRepository creates a new MovementRepository.
-func NewMovementRepository(db *sql.DB) *MovementRepository {
+func NewMovementRepository(db DBTX) *MovementRepository {
 	return &MovementRepository{db: db}
 }
 
@@ -58,30 +67,9 @@ func (r *MovementRepository) FindByID(ctx context.Context, id string) (*domain.M
 func (r *MovementRepository) List(ctx context.Context, filter domain.MovementFilter) ([]*domain.Movement, error) {
 	q := `SELECT id, product_ean13, type, quantity, reason, notes, created_by, created_at
 		FROM movements WHERE 1=1`
-	args := []any{}
-	idx := 1
 
-	if filter.ProductEan13 != "" {
-		q += fmt.Sprintf(" AND product_ean13 = $%d", idx)
-		args = append(args, filter.ProductEan13)
-		idx++
-	}
-	if filter.Type != "" {
-		q += fmt.Sprintf(" AND type = $%d", idx)
-		args = append(args, filter.Type)
-		idx++
-	}
-	if !filter.From.IsZero() {
-		q += fmt.Sprintf(" AND created_at >= $%d", idx)
-		args = append(args, filter.From)
-		idx++
-	}
-	if !filter.To.IsZero() {
-		q += fmt.Sprintf(" AND created_at <= $%d", idx)
-		args = append(args, filter.To)
-		idx++
-	}
-	q += " ORDER BY created_at DESC"
+	q0, args := filter.Args()
+	q += q0 + " ORDER BY created_at DESC"
 
 	rows, err := r.db.QueryContext(ctx, q, args...)
 	if err != nil {

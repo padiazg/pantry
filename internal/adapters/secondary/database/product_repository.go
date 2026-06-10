@@ -9,13 +9,20 @@ import (
 	"github.com/padiazg/pantry/internal/core/domain"
 )
 
+// dbTX is the subset of database/sql.DB used by this repository.
+type dbTX interface {
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+}
+
 // ProductRepository implements domain.ProductRepository using PostgreSQL.
 type ProductRepository struct {
-	db *sql.DB
+	db dbTX
 }
 
 // NewProductRepository creates a new ProductRepository.
-func NewProductRepository(db *sql.DB) *ProductRepository {
+func NewProductRepository(db dbTX) *ProductRepository {
 	return &ProductRepository{db: db}
 }
 
@@ -83,23 +90,9 @@ func (r *ProductRepository) List(ctx context.Context, filter domain.ProductFilte
 	q := `SELECT ean13, name, description, unit, min_stock, current_stock,
 		COALESCE(category_id,''), active, created_at, updated_at
 		FROM products WHERE 1=1`
-	args := []any{}
-	idx := 1
 
-	if filter.CategoryID != "" {
-		q += fmt.Sprintf(" AND category_id = $%d", idx)
-		args = append(args, filter.CategoryID)
-		idx++
-	}
-	if filter.Active != nil {
-		q += fmt.Sprintf(" AND active = $%d", idx)
-		args = append(args, *filter.Active)
-		idx++
-	}
-	if filter.LowStock {
-		q += " AND current_stock <= min_stock"
-	}
-	q += " ORDER BY name"
+	q0, args := filter.Args()
+	q += q0 + " ORDER BY name"
 
 	rows, err := r.db.QueryContext(ctx, q, args...)
 	if err != nil {

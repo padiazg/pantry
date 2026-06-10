@@ -9,16 +9,16 @@ import (
 // Product represents an article stored in the pantry.
 // The EAN-13 barcode is the natural key.
 type Product struct {
-	Ean13        string
-	Name         string
-	Description  string
-	Unit         string
-	MinStock     float64
-	CurrentStock float64
-	CategoryID   string
-	Active       bool
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+	CategoryID   string
+	Description  string
+	Ean13        string
+	Name         string
+	Unit         string
+	CurrentStock float64
+	MinStock     float64
+	Active       bool
 }
 
 // NewProduct creates a new active Product with zero initial stock.
@@ -83,7 +83,7 @@ func (e *Product) ApplyMovement(movType MovementType, quantity float64) error {
 	case MovementTypeIn:
 		e.CurrentStock += quantity
 	case MovementTypeOut:
-		if e.CurrentStock-quantity < 0 {
+		if (e.CurrentStock - quantity) < 0 {
 			return fmt.Errorf("insufficient stock: available %.3f, requested %.3f", e.CurrentStock, quantity)
 		}
 		e.CurrentStock -= quantity
