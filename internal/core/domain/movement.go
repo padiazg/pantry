@@ -8,14 +8,14 @@ import (
 
 // Movement records a single inbound or outbound stock event.
 type Movement struct {
+	CreatedAt    time.Time
+	CreatedBy    string
 	Id           string
+	Notes        string
 	ProductEan13 string
+	Reason       string
 	Type         string // "in" or "out"
 	Quantity     float64
-	Reason       string
-	Notes        string
-	CreatedBy    string
-	CreatedAt    time.Time
 }
 
 // NewMovement creates a validated Movement. The id must be a pre-generated UUID v4.

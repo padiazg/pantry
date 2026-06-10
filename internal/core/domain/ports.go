@@ -17,6 +17,30 @@ type ProductFilter struct {
 	LowStock   bool
 }
 
+func (filter *ProductFilter) Args() (string, []any) {
+	args := []any{}
+	idx := 1
+	q := ""
+
+	if filter.CategoryID != "" {
+		q += fmt.Sprintf(" AND category_id = $%d", idx)
+		args = append(args, filter.CategoryID)
+		idx++
+	}
+
+	if filter.Active != nil {
+		q += fmt.Sprintf(" AND active = $%d", idx)
+		args = append(args, *filter.Active)
+		// idx++ 	// uncommment to trigger INCREMENT_DECREMENT mutant
+	}
+
+	if filter.LowStock {
+		q += " AND current_stock <= min_stock"
+	}
+
+	return q, args
+}
+
 // MovementFilter holds optional criteria for listing movements.
 type MovementFilter struct {
 	From         time.Time
